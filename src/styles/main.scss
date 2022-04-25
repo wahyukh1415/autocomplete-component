@@ -1,0 +1,24 @@
+html,
+body,
+#app {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  font-family: 'Nunito Sans', sans-serif;
+}
+
+.button-setting{
+  width: 119px;
+  height: 40px;
+  background: #F1F6F8;
+  border-radius: 4px;
+  font-family: 'Nunito Sans';
+  font-style: normal;
+  font-weight: 600;
+  font-size: 14px;
+  line-height: 22px;
+  border: unset;
+  img{
+    margin:0px 3px 5px 0px;
+  }
+}

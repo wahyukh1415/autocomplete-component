@@ -1,0 +1,48 @@
+version: "3.8"
+
+networks:
+  loadbalancer:
+    external: true
+
+services:
+  pln-marketplace-theoden-production:
+    image: $DOCKER_IMAGE
+    networks:
+      - loadbalancer
+    volumes:
+      - /etc/localtime:/etc/localtime:ro
+    logging:
+      driver: loki
+      options:
+        loki-url: "$DATASOURCE_LOKI"
+    deploy:
+      labels:
+        - "traefik.enable=true"
+        - "traefik.http.services.pln-marketplace-theoden-production.loadbalancer.server.port=80"
+        - "traefik.http.middlewares.compress-pln-marketplace-theoden-production.compress=true"
+        - "traefik.http.middlewares.redirectscheme-pln-marketplace-theoden-production.redirectscheme.scheme=https"
+        - "traefik.http.middlewares.security-pln-marketplace-theoden-production.headers.frameDeny=true"
+        - "traefik.http.middlewares.security-pln-marketplace-theoden-production.headers.sslRedirect=true"
+        - "traefik.http.middlewares.security-pln-marketplace-theoden-production.headers.browserXssFilter=true"
+        - "traefik.http.middlewares.security-pln-marketplace-theoden-production.headers.contentTypeNosniff=true"
+        - "traefik.http.middlewares.security-pln-marketplace-theoden-production.headers.stsIncludeSubdomains=true"
+        - "traefik.http.middlewares.security-pln-marketplace-theoden-production.headers.stsPreload=true"
+        - "traefik.http.middlewares.security-pln-marketplace-theoden-production.headers.stsSeconds=31536000"
+        - "traefik.http.routers.public-pln-marketplace-theoden-production-web.rule=Host(`seller-mkp.iconcash.id`)"
+        - "traefik.http.routers.public-pln-marketplace-theoden-production-web.middlewares=redirectscheme-pln-marketplace-theoden-production"
+        - "traefik.http.routers.public-pln-marketplace-theoden-production-web.entrypoints=web"
+        - "traefik.http.routers.public-pln-marketplace-theoden-production-websecure.rule=Host(`seller-mkp.iconcash.id`)"
+        - "traefik.http.routers.public-pln-marketplace-theoden-production-websecure.middlewares=security-pln-marketplace-theoden-production,compress-pln-marketplace-theoden-production"
+        - "traefik.http.routers.public-pln-marketplace-theoden-production-websecure.tls=true"
+        - "traefik.http.routers.public-pln-marketplace-theoden-production-websecure.entrypoints=websecure"
+      mode: replicated
+      replicas: 1
+      placement:
+        max_replicas_per_node: 1
+        constraints:
+          - node.labels.plnmp-ev == gandul
+        preferences:
+          - spread: node.labels.plnmp-ev
+      resources:
+        limits:
+          memory: $DOCKER_MEM_LIMIT
